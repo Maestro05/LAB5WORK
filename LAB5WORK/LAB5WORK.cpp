@@ -80,11 +80,17 @@ private:
     Category category;
     int year;
     int copiesAvailable;
+    static int bookCount;  // Статическое поле для подсчета книг
 
 public:
     // Конструктор по умолчанию
     Book() : year(0), copiesAvailable(0) {
         strcpy(title, "");
+    }
+
+    // Статический метод для получения общего количества книг
+    static int getBookCount() {
+        return bookCount;
     }
 
     // Метод для ввода данных о книге
@@ -100,6 +106,22 @@ public:
         std::cout << "Введите количество доступных копий: ";
         std::cin >> copiesAvailable;
         std::cin.ignore();  // Очищаем буфер после ввода чисел
+
+        // Используем this для доступа к полям объекта
+        this->validateYear(); // Проверка года
+    }
+
+    // Метод для проверки года издания
+    void validateYear() {
+        int currentYear = 2024; // Текущий год, его можно динамически получить через <ctime>
+        try {
+            if (year < 1000 || year > currentYear) {
+                throw std::invalid_argument("Неверный год издания! Год должен быть между 1000 и текущим.");
+            }
+        }
+        catch (const std::invalid_argument& e) {
+            std::cout << "Ошибка: " << e.what() << std::endl;
+        }
     }
 
     // Методы доступа
@@ -127,7 +149,20 @@ public:
         author.print();
         category.print();
     }
+
+    // Статический метод, который увеличивает счетчик книг
+    static void increaseBookCount() {
+        ++bookCount;
+    }
+
+    // Деструктор для уменьшения количества книг
+    ~Book() {
+        --bookCount;
+    }
 };
+
+// Инициализация статического поля
+int Book::bookCount = 0;
 
 class Reader {
 private:
