@@ -1,40 +1,35 @@
-﻿// LAB5WORK.cpp : Этот файл содержит функцию "main". Здесь начинается и заканчивается выполнение программы.
-//
-#define _CRT_SECURE_NO_WARNINGS
+﻿#define _CRT_SECURE_NO_WARNINGS
 #include <iostream>
 #include <cstring>
 #include <cstdlib>  // Для функций стандартного ввода
 #include <stdexcept> // Для исключений
 #include <ctime> // Для получения текущего года
+#include <string> // Для работы с std::string
 
 class Author {
 private:
-    char name[100];
-    char surname[100];
-    char birthdate[11];
+    std::string name;
+    std::string surname;
+    std::string birthdate;
 
 public:
     // Конструктор по умолчанию
-    Author() {
-        strcpy(name, "");
-        strcpy(surname, "");
-        strcpy(birthdate, "");
-    }
+    Author() : name(""), surname(""), birthdate("") {}
 
     // Метод для ввода данных автора
     void input() {
         std::cout << "Введите имя автора: ";
-        std::cin.getline(name, sizeof(name));
+        std::getline(std::cin, name);
         std::cout << "Введите фамилию автора: ";
-        std::cin.getline(surname, sizeof(surname));
+        std::getline(std::cin, surname);
         std::cout << "Введите дату рождения (DD.MM.YYYY): ";
-        std::cin.getline(birthdate, sizeof(birthdate));
+        std::getline(std::cin, birthdate);
     }
 
-    // Геттеры
-    const char* getName() const { return name; }
-    const char* getSurname() const { return surname; }
-    const char* getBirthdate() const { return birthdate; }
+    // Методы доступа
+    const std::string& getName() const { return name; }
+    const std::string& getSurname() const { return surname; }
+    const std::string& getBirthdate() const { return birthdate; }
 
     // Метод для вывода данных автора
     void print() const {
@@ -42,30 +37,31 @@ public:
     }
 };
 
+// Дружественная функция для вывода имени автора
+void printAuthorName(const Author& author) {
+    std::cout << "Имя автора: " << author.getName() << std::endl;
+}
 
 class Category {
 private:
-    char name[50];
-    char description[200];
+    std::string name;
+    std::string description;
 
 public:
     // Конструктор по умолчанию
-    Category() {
-        strcpy(name, "");
-        strcpy(description, "");
-    }
+    Category() : name(""), description("") {}
 
     // Метод для ввода данных категории
     void input() {
         std::cout << "Введите название категории: ";
-        std::cin.getline(name, sizeof(name));
+        std::getline(std::cin, name);
         std::cout << "Введите описание категории: ";
-        std::cin.getline(description, sizeof(description));
+        std::getline(std::cin, description);
     }
 
-    // Геттеры
-    const char* getName() const { return name; }
-    const char* getDescription() const { return description; }
+    // Методы доступа
+    const std::string& getName() const { return name; }
+    const std::string& getDescription() const { return description; }
 
     // Метод для вывода данных категории
     void print() const {
@@ -75,7 +71,7 @@ public:
 
 class Book {
 private:
-    char title[200];
+    std::string title;
     Author author;
     Category category;
     int year;
@@ -84,9 +80,7 @@ private:
 
 public:
     // Конструктор по умолчанию
-    Book() : year(0), copiesAvailable(0) {
-        strcpy(title, "");
-    }
+    Book() : title(""), year(0), copiesAvailable(0) {}
 
     // Статический метод для получения общего количества книг
     static int getBookCount() {
@@ -96,7 +90,7 @@ public:
     // Метод для ввода данных о книге
     void input() {
         std::cout << "Введите название книги: ";
-        std::cin.getline(title, sizeof(title));
+        std::getline(std::cin, title);
 
         author.input();
         category.input();
@@ -107,7 +101,6 @@ public:
         std::cin >> copiesAvailable;
         std::cin.ignore();  // Очищаем буфер после ввода чисел
 
-        // Используем this для доступа к полям объекта
         this->validateYear(); // Проверка года
     }
 
@@ -125,7 +118,7 @@ public:
     }
 
     // Методы доступа
-    const char* getTitle() const { return title; }
+    const std::string& getTitle() const { return title; }
     const Author& getAuthor() const { return author; }
     const Category& getCategory() const { return category; }
     int getYear() const { return year; }
@@ -133,14 +126,20 @@ public:
 
     // Метод для уменьшения количества доступных экземпляров
     void decreaseCopies() {
+        std::cout << "Текущее количество копий: " << copiesAvailable << std::endl;
         if (copiesAvailable > 0) {
             --copiesAvailable;
+            std::cout << "Копия успешно уменьшена. Осталось копий: " << copiesAvailable << std::endl;
+        }
+        else {
+            throw std::out_of_range("Нет доступных экземпляров!");
         }
     }
 
     // Метод для увеличения количества доступных экземпляров
     void increaseCopies() {
         ++copiesAvailable;
+        std::cout << "Копий увеличено. Осталось копий: " << copiesAvailable << std::endl;
     }
 
     // Метод для вывода информации о книге
@@ -166,32 +165,28 @@ int Book::bookCount = 0;
 
 class Reader {
 private:
-    char name[100];
-    char surname[100];
-    char cardNumber[20];
+    std::string name;
+    std::string surname;
+    std::string cardNumber;
 
 public:
     // Конструктор по умолчанию
-    Reader() {
-        strcpy(name, "");
-        strcpy(surname, "");
-        strcpy(cardNumber, "");
-    }
+    Reader() : name(""), surname(""), cardNumber("") {}
 
     // Метод для ввода данных о читателе
     void input() {
         std::cout << "Введите имя читателя: ";
-        std::cin.getline(name, sizeof(name));
+        std::getline(std::cin, name);
         std::cout << "Введите фамилию читателя: ";
-        std::cin.getline(surname, sizeof(surname));
+        std::getline(std::cin, surname);
         std::cout << "Введите номер читательского билета: ";
-        std::cin.getline(cardNumber, sizeof(cardNumber));
+        std::getline(std::cin, cardNumber);
     }
 
     // Методы доступа
-    const char* getName() const { return name; }
-    const char* getSurname() const { return surname; }
-    const char* getCardNumber() const { return cardNumber; }
+    const std::string& getName() const { return name; }
+    const std::string& getSurname() const { return surname; }
+    const std::string& getCardNumber() const { return cardNumber; }
 
     // Метод для вывода данных о читателе
     void print() const {
@@ -199,21 +194,17 @@ public:
     }
 };
 
-
 class BookIssue {
 private:
     Book* book;
     Reader* reader;
-    char issueDate[11];
-    char dueDate[11];
+    std::string issueDate;
+    std::string dueDate;
 
 public:
     // Конструктор
-    BookIssue(Book* book, Reader* reader, const char* issueDate, const char* dueDate)
-        : book(book), reader(reader) {
-        strncpy(this->issueDate, issueDate, sizeof(this->issueDate) - 1);
-        strncpy(this->dueDate, dueDate, sizeof(this->dueDate) - 1);
-    }
+    BookIssue(Book* book, Reader* reader, const std::string& issueDate, const std::string& dueDate)
+        : book(book), reader(reader), issueDate(issueDate), dueDate(dueDate) {}
 
     // Метод для вывода данных о выдаче книги
     void print() const {
@@ -237,11 +228,11 @@ int main() {
     dynamicReader->input();  // Вводим данные о читателе
 
     // Ввод данных о выдаче книги
-    char issueDate[11], dueDate[11];
+    std::string issueDate, dueDate;
     std::cout << "Введите дату выдачи (DD.MM.YYYY): ";
-    std::cin.getline(issueDate, sizeof(issueDate));
+    std::getline(std::cin, issueDate);
     std::cout << "Введите срок возврата (DD.MM.YYYY): ";
-    std::cin.getline(dueDate, sizeof(dueDate));
+    std::getline(std::cin, dueDate);
 
     // Создание записи о выдаче книги
     BookIssue* issue = new BookIssue(dynamicBook, dynamicReader, issueDate, dueDate);
@@ -250,6 +241,14 @@ int main() {
     // Вывод общего количества книг
     std::cout << "Общее количество книг в системе: " << Book::getBookCount() << std::endl;
 
+    // Попытка уменьшить количество копий
+    try {
+        dynamicBook->decreaseCopies();  // Попытка уменьшить копии на 1
+    }
+    catch (const std::out_of_range& e) {
+        std::cout << "Ошибка: " << e.what() << std::endl;
+    }
+
     // Освобождение памяти
     delete dynamicReader;
     delete dynamicBook;
@@ -257,4 +256,3 @@ int main() {
 
     return 0;
 }
-
