@@ -224,8 +224,28 @@ public:
     }
 };
 
-int main()
-{
-    setlocale(LC_ALL, "rus");
+int main() {
+    setlocale(LC_ALL, "Rus");
+
+    // Динамическое выделение памяти для книги
+    Book* dynamicBook = new Book();
+    dynamicBook->input();  // Вводим данные о книге
+    Book::increaseBookCount(); // Увеличиваем счетчик книг
+
+    // Динамическое выделение памяти для читателя
+    Reader* dynamicReader = new Reader();
+    dynamicReader->input();  // Вводим данные о читателе
+
+    // Ввод данных о выдаче книги
+    char issueDate[11], dueDate[11];
+    std::cout << "Введите дату выдачи (DD.MM.YYYY): ";
+    std::cin.getline(issueDate, sizeof(issueDate));
+    std::cout << "Введите срок возврата (DD.MM.YYYY): ";
+    std::cin.getline(dueDate, sizeof(dueDate));
+
+    // Создание записи о выдаче книги
+    BookIssue* issue = new BookIssue(dynamicBook, dynamicReader, issueDate, dueDate);
+    issue->print();  // Выводим информацию о выдаче
+
 }
 
