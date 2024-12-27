@@ -1,10 +1,7 @@
-﻿#define _CRT_SECURE_NO_WARNINGS
-#include <iostream>
-#include <cstring>
-#include <cstdlib>  // Для функций стандартного ввода
+﻿#include <iostream>
+#include <string>  // Для std::string
 #include <stdexcept> // Для исключений
-#include <ctime> // Для получения текущего года
-#include <string> // Для работы с std::string
+#include <cstring> // Для strncpy
 
 class Author {
 private:
@@ -16,6 +13,21 @@ public:
     // Конструктор по умолчанию
     Author() : name(""), surname(""), birthdate("") {}
 
+    // Конструктор копирования
+    Author(const Author& other) : name(other.name), surname(other.surname), birthdate(other.birthdate) {
+        std::cout << "Конструктор копирования для автора: " << name << " " << surname << std::endl;
+    }
+
+    // Оператор присваивания
+    Author& operator=(const Author& other) {
+        if (this == &other) return *this; // Защита от самоприсваивания
+        name = other.name;
+        surname = other.surname;
+        birthdate = other.birthdate;
+        std::cout << "Оператор присваивания для автора: " << name << " " << surname << std::endl;
+        return *this;
+    }
+
     // Метод для ввода данных автора
     void input() {
         std::cout << "Введите имя автора: ";
@@ -26,15 +38,15 @@ public:
         std::getline(std::cin, birthdate);
     }
 
-    // Методы доступа
-    const std::string& getName() const { return name; }
-    const std::string& getSurname() const { return surname; }
-    const std::string& getBirthdate() const { return birthdate; }
-
     // Метод для вывода данных автора
     void print() const {
         std::cout << "Автор: " << name << " " << surname << ", Дата рождения: " << birthdate << std::endl;
     }
+
+    // Геттеры
+    const std::string& getName() const { return name; }
+    const std::string& getSurname() const { return surname; }
+    const std::string& getBirthdate() const { return birthdate; }
 };
 
 // Дружественная функция для вывода имени автора
@@ -42,38 +54,10 @@ void printAuthorName(const Author& author) {
     std::cout << "Имя автора: " << author.getName() << std::endl;
 }
 
-class Category {
-private:
-    std::string name;
-    std::string description;
-
-public:
-    // Конструктор по умолчанию
-    Category() : name(""), description("") {}
-
-    // Метод для ввода данных категории
-    void input() {
-        std::cout << "Введите название категории: ";
-        std::getline(std::cin, name);
-        std::cout << "Введите описание категории: ";
-        std::getline(std::cin, description);
-    }
-
-    // Методы доступа
-    const std::string& getName() const { return name; }
-    const std::string& getDescription() const { return description; }
-
-    // Метод для вывода данных категории
-    void print() const {
-        std::cout << "Категория: " << name << ", Описание: " << description << std::endl;
-    }
-};
-
 class Book {
 private:
     std::string title;
     Author author;
-    Category category;
     int year;
     int copiesAvailable;
     static int bookCount;  // Статическое поле для подсчета книг
@@ -82,177 +66,113 @@ public:
     // Конструктор по умолчанию
     Book() : title(""), year(0), copiesAvailable(0) {}
 
-    // Статический метод для получения общего количества книг
+    // Конструктор копирования
+    Book(const Book& other) : title(other.title), author(other.author), year(other.year), copiesAvailable(other.copiesAvailable) {
+        std::cout << "Конструктор копирования для книги: " << title << std::endl;
+    }
+
+    // Оператор присваивания
+    Book& operator=(const Book& other) {
+        if (this == &other) return *this; // Защита от самоприсваивания
+        title = other.title;
+        author = other.author;
+        year = other.year;
+        copiesAvailable = other.copiesAvailable;
+        std::cout << "Оператор присваивания для книги: " << title << std::endl;
+        return *this;
+    }
+
+    // Статический метод для подсчета книг
     static int getBookCount() {
         return bookCount;
+    }
+
+    // Статический метод для увеличения количества книг
+    static void increaseBookCount() {
+        ++bookCount;
     }
 
     // Метод для ввода данных о книге
     void input() {
         std::cout << "Введите название книги: ";
         std::getline(std::cin, title);
-
         author.input();
-        category.input();
-
         std::cout << "Введите год издания: ";
         std::cin >> year;
         std::cout << "Введите количество доступных копий: ";
         std::cin >> copiesAvailable;
         std::cin.ignore();  // Очищаем буфер после ввода чисел
-
-        this->validateYear(); // Проверка года
     }
 
-    // Метод для проверки года издания
-    void validateYear() {
-        int currentYear = 2024; // Текущий год, его можно динамически получить через <ctime>
-        try {
-            if (year < 1000 || year > currentYear) {
-                throw std::invalid_argument("Неверный год издания! Год должен быть между 1000 и текущим.");
-            }
-        }
-        catch (const std::invalid_argument& e) {
-            std::cout << "Ошибка: " << e.what() << std::endl;
-        }
+    // Метод для вывода данных о книге
+    void print() const {
+        std::cout << "Книга: " << title << ", Год: " << year << ", Доступных копий: " << copiesAvailable << std::endl;
+        author.print();
     }
 
-    // Методы доступа
-    const std::string& getTitle() const { return title; }
-    const Author& getAuthor() const { return author; }
-    const Category& getCategory() const { return category; }
-    int getYear() const { return year; }
-    int getCopiesAvailable() const { return copiesAvailable; }
-
-    // Метод для уменьшения количества доступных экземпляров
+    // Метод для уменьшения количества копий книги
     void decreaseCopies() {
-        std::cout << "Текущее количество копий: " << copiesAvailable << std::endl;
         if (copiesAvailable > 0) {
             --copiesAvailable;
             std::cout << "Копия успешно уменьшена. Осталось копий: " << copiesAvailable << std::endl;
         }
         else {
-            throw std::out_of_range("Нет доступных экземпляров!");
+            throw std::out_of_range("Нет доступных экземпляров!"); // Исключение, если копий нет
         }
     }
 
-    // Метод для увеличения количества доступных экземпляров
-    void increaseCopies() {
-        ++copiesAvailable;
-        std::cout << "Копий увеличено. Осталось копий: " << copiesAvailable << std::endl;
-    }
-
-    // Метод для вывода информации о книге
-    void print() const {
-        std::cout << "Книга: " << title << ", Год: " << year << ", Доступных копий: " << copiesAvailable << std::endl;
-        author.print();
-        category.print();
-    }
-
-    // Статический метод, который увеличивает счетчик книг
-    static void increaseBookCount() {
-        ++bookCount;
-    }
-
-    // Деструктор для уменьшения количества книг
-    ~Book() {
-        --bookCount;
-    }
+    // Геттеры
+    int getCopiesAvailable() const { return copiesAvailable; }
 };
 
-// Инициализация статического поля
 int Book::bookCount = 0;
-
-class Reader {
-private:
-    std::string name;
-    std::string surname;
-    std::string cardNumber;
-
-public:
-    // Конструктор по умолчанию
-    Reader() : name(""), surname(""), cardNumber("") {}
-
-    // Метод для ввода данных о читателе
-    void input() {
-        std::cout << "Введите имя читателя: ";
-        std::getline(std::cin, name);
-        std::cout << "Введите фамилию читателя: ";
-        std::getline(std::cin, surname);
-        std::cout << "Введите номер читательского билета: ";
-        std::getline(std::cin, cardNumber);
-    }
-
-    // Методы доступа
-    const std::string& getName() const { return name; }
-    const std::string& getSurname() const { return surname; }
-    const std::string& getCardNumber() const { return cardNumber; }
-
-    // Метод для вывода данных о читателе
-    void print() const {
-        std::cout << "Читатель: " << name << " " << surname << ", Номер карты: " << cardNumber << std::endl;
-    }
-};
-
-class BookIssue {
-private:
-    Book* book;
-    Reader* reader;
-    std::string issueDate;
-    std::string dueDate;
-
-public:
-    // Конструктор
-    BookIssue(Book* book, Reader* reader, const std::string& issueDate, const std::string& dueDate)
-        : book(book), reader(reader), issueDate(issueDate), dueDate(dueDate) {}
-
-    // Метод для вывода данных о выдаче книги
-    void print() const {
-        std::cout << "Выдача книги: " << std::endl;
-        book->print();
-        reader->print();
-        std::cout << "Дата выдачи: " << issueDate << ", Срок возврата: " << dueDate << std::endl;
-    }
-};
 
 int main() {
     setlocale(LC_ALL, "Rus");
 
     // Динамическое выделение памяти для книги
-    Book* dynamicBook = new Book();
-    dynamicBook->input();  // Вводим данные о книге
+    Book* dynamicBook1 = new Book();
+    dynamicBook1->input();  // Вводим данные о первой книге
     Book::increaseBookCount(); // Увеличиваем счетчик книг
 
-    // Динамическое выделение памяти для читателя
-    Reader* dynamicReader = new Reader();
-    dynamicReader->input();  // Вводим данные о читателе
+    // Создаем копию книги с использованием конструктора копирования
+    Book* dynamicBook2 = new Book(*dynamicBook1);  // Конструктор копирования
 
-    // Ввод данных о выдаче книги
-    std::string issueDate, dueDate;
-    std::cout << "Введите дату выдачи (DD.MM.YYYY): ";
-    std::getline(std::cin, issueDate);
-    std::cout << "Введите срок возврата (DD.MM.YYYY): ";
-    std::getline(std::cin, dueDate);
+    // Создаем еще один объект книги и используем оператор присваивания
+    Book* dynamicBook3 = new Book();
+    *dynamicBook3 = *dynamicBook1;  // Оператор присваивания
 
-    // Создание записи о выдаче книги
-    BookIssue* issue = new BookIssue(dynamicBook, dynamicReader, issueDate, dueDate);
-    issue->print();  // Выводим информацию о выдаче
+    // Выводим информацию о всех книгах
+    std::cout << "\nИнформация о первой книге:\n";
+    dynamicBook1->print();
 
-    // Вывод общего количества книг
-    std::cout << "Общее количество книг в системе: " << Book::getBookCount() << std::endl;
+    std::cout << "\nИнформация о второй книге (скопирована через конструктор копирования):\n";
+    dynamicBook2->print();
 
-    // Попытка уменьшить количество копий
+    std::cout << "\nИнформация о третьей книге (присвоена через оператор присваивания):\n";
+    dynamicBook3->print();
+
+    // Демонстрация работы с методом decreaseCopies и обработки исключений
     try {
-        dynamicBook->decreaseCopies();  // Попытка уменьшить копии на 1
+        std::cout << "\nПопытка уменьшить копии книги:\n";
+        dynamicBook1->decreaseCopies();  // Уменьшаем количество копий на 1
+        dynamicBook1->decreaseCopies();  // Еще раз уменьшаем количество копий
+        dynamicBook1->decreaseCopies();  // Еще раз
+        dynamicBook1->decreaseCopies();  // Еще раз
+        dynamicBook1->decreaseCopies();  // Еще раз
+        dynamicBook1->decreaseCopies();  // Ошибка, копий больше нет
     }
     catch (const std::out_of_range& e) {
         std::cout << "Ошибка: " << e.what() << std::endl;
     }
 
+    // Вывод общего количества книг
+    std::cout << "Общее количество книг в системе: " << Book::getBookCount() << std::endl;
+
     // Освобождение памяти
-    delete dynamicReader;
-    delete dynamicBook;
-    delete issue;
+    delete dynamicBook1;
+    delete dynamicBook2;
+    delete dynamicBook3;
 
     return 0;
 }
