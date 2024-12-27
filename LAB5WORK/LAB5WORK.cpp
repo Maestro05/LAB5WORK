@@ -1,7 +1,7 @@
 ﻿#include <iostream>
 #include <string>  // Для std::string
 #include <stdexcept> // Для исключений
-#include <cstring> // Для strncpy
+#include <ctime> // Для получения текущего года
 
 class Author {
 private:
@@ -97,8 +97,21 @@ public:
         std::cout << "Введите название книги: ";
         std::getline(std::cin, title);
         author.input();
-        std::cout << "Введите год издания: ";
-        std::cin >> year;
+
+        // Проверка на год издания с исключением
+        try {
+            std::cout << "Введите год издания: ";
+            std::cin >> year;
+            std::cin.ignore();  // Очищаем буфер после ввода чисел
+            if (year < 1000 || year > 2024) {  // Текущий год можно динамически получить
+                throw std::invalid_argument("Неверный год издания! Год должен быть между 1000 и 2024.");
+            }
+        }
+        catch (const std::invalid_argument& e) {
+            std::cout << "Ошибка: " << e.what() << std::endl;
+            year = 0;  // Присваиваем 0 в случае ошибки
+        }
+
         std::cout << "Введите количество доступных копий: ";
         std::cin >> copiesAvailable;
         std::cin.ignore();  // Очищаем буфер после ввода чисел
