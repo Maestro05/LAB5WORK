@@ -1,8 +1,8 @@
 ﻿#define _CRT_SECURE_NO_WARNINGS
 #include <iostream>
 #include <cstring>
-#include <cstdlib>  // Для функций стандартного ввода
-#include <string>   // Для использования std::string
+#include <cstdlib>
+#include <string>  // Для работы с std::string
 
 class Author {
 private:
@@ -14,18 +14,12 @@ public:
     // Конструктор по умолчанию
     Author() : name(""), surname(""), birthdate("") {}
 
-    // Конструктор копирования
-    Author(const Author& other) : name(other.name), surname(other.surname), birthdate(other.birthdate) {}
+    // Конструктор с параметрами
+    Author(const std::string& name, const std::string& surname, const std::string& birthdate)
+        : name(name), surname(surname), birthdate(birthdate) {}
 
-    // Оператор присваивания
-    Author& operator=(const Author& other) {
-        if (this != &other) {
-            name = other.name;
-            surname = other.surname;
-            birthdate = other.birthdate;
-        }
-        return *this;
-    }
+    // Дружественная функция для доступа к приватным данным
+    friend void printAuthorInfo(const Author& author);
 
     // Метод для ввода данных автора
     void input() {
@@ -42,15 +36,20 @@ public:
     const std::string& getSurname() const { return surname; }
     const std::string& getBirthdate() const { return birthdate; }
 
+    // Перегрузка оператора сравнения
+    bool operator==(const Author& other) const {
+        return name == other.name && surname == other.surname && birthdate == other.birthdate;
+    }
+
     // Метод для вывода данных автора
     void print() const {
         std::cout << "Автор: " << name << " " << surname << ", Дата рождения: " << birthdate << std::endl;
     }
 };
 
-// Дружественная функция для вывода информации о книге
-class Book; // Предварительное объявление для дружественной функции
-void printBookInfo(const Book& book);
+void printAuthorInfo(const Author& author) {
+    std::cout << "Дружеская функция: " << author.name << " " << author.surname << std::endl;
+}
 
 class Category {
 private:
@@ -60,18 +59,6 @@ private:
 public:
     // Конструктор по умолчанию
     Category() : name(""), description("") {}
-
-    // Конструктор копирования
-    Category(const Category& other) : name(other.name), description(other.description) {}
-
-    // Оператор присваивания
-    Category& operator=(const Category& other) {
-        if (this != &other) {
-            name = other.name;
-            description = other.description;
-        }
-        return *this;
-    }
 
     // Метод для ввода данных категории
     void input() {
@@ -103,8 +90,9 @@ public:
     // Конструктор по умолчанию
     Book() : title(""), year(0), copiesAvailable(0) {}
 
-    // Конструктор копирования
-    Book(const Book& other) : title(other.title), author(other.author), category(other.category), year(other.year), copiesAvailable(other.copiesAvailable) {}
+    // Конструктор копии
+    Book(const Book& other)
+        : title(other.title), author(other.author), category(other.category), year(other.year), copiesAvailable(other.copiesAvailable) {}
 
     // Оператор присваивания
     Book& operator=(const Book& other) {
@@ -152,23 +140,13 @@ public:
         ++copiesAvailable;
     }
 
-    // Метод для вывода информации о книге
+    // Перегрузка оператора вывода
     void print() const {
         std::cout << "Книга: " << title << ", Год: " << year << ", Доступных копий: " << copiesAvailable << std::endl;
         author.print();
         category.print();
     }
-
-    // Дружественная функция для вывода информации о книге
-    friend void printBookInfo(const Book& book);
 };
-
-// Дружественная функция для вывода информации о книге
-void printBookInfo(const Book& book) {
-    std::cout << "Книга: " << book.title << ", Год: " << book.year << ", Доступных копий: " << book.copiesAvailable << std::endl;
-    book.author.print();
-    book.category.print();
-}
 
 class Reader {
 private:
@@ -179,19 +157,6 @@ private:
 public:
     // Конструктор по умолчанию
     Reader() : name(""), surname(""), cardNumber("") {}
-
-    // Конструктор копирования
-    Reader(const Reader& other) : name(other.name), surname(other.surname), cardNumber(other.cardNumber) {}
-
-    // Оператор присваивания
-    Reader& operator=(const Reader& other) {
-        if (this != &other) {
-            name = other.name;
-            surname = other.surname;
-            cardNumber = other.cardNumber;
-        }
-        return *this;
-    }
 
     // Метод для ввода данных о читателе
     void input() {
@@ -229,7 +194,7 @@ public:
     // Метод для вывода данных о выдаче книги
     void print() const {
         std::cout << "Выдача книги: " << std::endl;
-        printBookInfo(*book);  // Используем дружественную функцию
+        book->print();
         reader->print();
         std::cout << "Дата выдачи: " << issueDate << ", Срок возврата: " << dueDate << std::endl;
     }
@@ -238,15 +203,15 @@ public:
 int main() {
     setlocale(LC_ALL, "Rus");
 
-    // Динамическое выделение памяти для книги
+    // Тест: Создаем книгу с данными
     Book* dynamicBook = new Book();
     dynamicBook->input();  // Вводим данные о книге
 
-    // Динамическое выделение памяти для читателя
+    // Тест: Создаем читателя с данными
     Reader* dynamicReader = new Reader();
     dynamicReader->input();  // Вводим данные о читателе
 
-    // Ввод данных о выдаче книги
+    // Тест: Ввод данных о выдаче книги
     std::string issueDate, dueDate;
     std::cout << "Введите дату выдачи (DD.MM.YYYY): ";
     std::getline(std::cin, issueDate);
@@ -257,10 +222,22 @@ int main() {
     BookIssue* issue = new BookIssue(dynamicBook, dynamicReader, issueDate, dueDate);
     issue->print();  // Выводим информацию о выдаче
 
+    // Тест: Конструктор копии и оператор присваивания
+    Book* copiedBook = new Book(*dynamicBook);  // Используем конструктор копии
+    copiedBook->print();
+
+    Book anotherBook;
+    anotherBook = *dynamicBook;  // Используем оператор присваивания
+    anotherBook.print();
+
+    // Дружественная функция для авторов
+    printAuthorInfo(dynamicBook->getAuthor());
+
     // Освобождение памяти
     delete dynamicReader;
     delete dynamicBook;
     delete issue;
+    delete copiedBook;
 
     return 0;
 }
