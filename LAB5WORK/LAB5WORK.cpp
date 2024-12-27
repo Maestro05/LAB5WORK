@@ -247,5 +247,14 @@ int main() {
     BookIssue* issue = new BookIssue(dynamicBook, dynamicReader, issueDate, dueDate);
     issue->print();  // Выводим информацию о выдаче
 
+    // Вывод общего количества книг
+    std::cout << "Общее количество книг в системе: " << Book::getBookCount() << std::endl;
+
+    // Освобождение памяти
+    delete dynamicReader;
+    delete dynamicBook;
+    delete issue;
+
+    return 0;
 }
 
