@@ -42,6 +42,7 @@ public:
     }
 };
 
+
 class Category {
 private:
     char name[50];
@@ -71,6 +72,63 @@ public:
         std::cout << "Категория: " << name << ", Описание: " << description << std::endl;
     }
 };
+
+class Book {
+private:
+    char title[200];
+    Author author;
+    Category category;
+    int year;
+    int copiesAvailable;
+
+public:
+    // Конструктор по умолчанию
+    Book() : year(0), copiesAvailable(0) {
+        strcpy(title, "");
+    }
+
+    // Метод для ввода данных о книге
+    void input() {
+        std::cout << "Введите название книги: ";
+        std::cin.getline(title, sizeof(title));
+
+        author.input();
+        category.input();
+
+        std::cout << "Введите год издания: ";
+        std::cin >> year;
+        std::cout << "Введите количество доступных копий: ";
+        std::cin >> copiesAvailable;
+        std::cin.ignore();  // Очищаем буфер после ввода чисел
+    }
+
+    // Методы доступа
+    const char* getTitle() const { return title; }
+    const Author& getAuthor() const { return author; }
+    const Category& getCategory() const { return category; }
+    int getYear() const { return year; }
+    int getCopiesAvailable() const { return copiesAvailable; }
+
+    // Метод для уменьшения количества доступных экземпляров
+    void decreaseCopies() {
+        if (copiesAvailable > 0) {
+            --copiesAvailable;
+        }
+    }
+
+    // Метод для увеличения количества доступных экземпляров
+    void increaseCopies() {
+        ++copiesAvailable;
+    }
+
+    // Метод для вывода информации о книге
+    void print() const {
+        std::cout << "Книга: " << title << ", Год: " << year << ", Доступных копий: " << copiesAvailable << std::endl;
+        author.print();
+        category.print();
+    }
+};
+
 class Reader {
 private:
     char name[100];
@@ -105,6 +163,7 @@ public:
         std::cout << "Читатель: " << name << " " << surname << ", Номер карты: " << cardNumber << std::endl;
     }
 };
+
 
 class BookIssue {
 private:
