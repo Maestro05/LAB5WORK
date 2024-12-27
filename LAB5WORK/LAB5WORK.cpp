@@ -2,7 +2,8 @@
 #include <iostream>
 #include <cstring>
 #include <cstdlib>
-#include <string>  // Для работы с std::string
+#include <stdexcept>  // Для исключений
+#include <string>     // Для std::string
 
 class Author {
 private:
@@ -14,12 +15,11 @@ public:
     // Конструктор по умолчанию
     Author() : name(""), surname(""), birthdate("") {}
 
-    // Конструктор с параметрами
-    Author(const std::string& name, const std::string& surname, const std::string& birthdate)
-        : name(name), surname(surname), birthdate(birthdate) {}
-
-    // Дружественная функция для доступа к приватным данным
-    friend void printAuthorInfo(const Author& author);
+    // Конструктор копии
+    Author(const Author& other)
+        : name(other.name), surname(other.surname), birthdate(other.birthdate) {
+        std::cout << "Конструктор копии автора: " << name << " " << surname << std::endl;
+    }
 
     // Метод для ввода данных автора
     void input() {
@@ -33,22 +33,30 @@ public:
 
     // Геттеры
     const std::string& getName() const { return name; }
-    const std::string& getSurname() const { return surname; }
+    const std::string* getSurname() const { return &surname; }
     const std::string& getBirthdate() const { return birthdate; }
-
-    // Перегрузка оператора сравнения
-    bool operator==(const Author& other) const {
-        return name == other.name && surname == other.surname && birthdate == other.birthdate;
-    }
 
     // Метод для вывода данных автора
     void print() const {
         std::cout << "Автор: " << name << " " << surname << ", Дата рождения: " << birthdate << std::endl;
     }
+
+    // Оператор присваивания
+    Author& operator=(const Author& other) {
+        if (this != &other) {
+            name = other.name;
+            surname = other.surname;
+            birthdate = other.birthdate;
+            std::cout << "Оператор присваивания автора: " << name << " " << surname << std::endl;
+        }
+        return *this;
+    }
 };
 
-void printAuthorInfo(const Author& author) {
-    std::cout << "Дружеская функция: " << author.name << " " << author.surname << std::endl;
+// Перегрузка оператора << для вывода книги
+std::ostream& operator<<(std::ostream& os, const Author& author) {
+    os << "Автор: " << author.getName() << " " << *author.getSurname() << ", Дата рождения: " << author.getBirthdate();
+    return os;
 }
 
 class Category {
@@ -85,14 +93,20 @@ private:
     Category category;
     int year;
     int copiesAvailable;
+    static int totalBooks;  // Статическое поле
 
 public:
     // Конструктор по умолчанию
-    Book() : title(""), year(0), copiesAvailable(0) {}
+    Book() : title(""), year(0), copiesAvailable(0) {
+        totalBooks++;  // Увеличиваем количество книг
+    }
 
     // Конструктор копии
     Book(const Book& other)
-        : title(other.title), author(other.author), category(other.category), year(other.year), copiesAvailable(other.copiesAvailable) {}
+        : title(other.title), author(other.author), category(other.category),
+        year(other.year), copiesAvailable(other.copiesAvailable) {
+        std::cout << "Конструктор копии книги: " << title << std::endl;
+    }
 
     // Оператор присваивания
     Book& operator=(const Book& other) {
@@ -102,8 +116,19 @@ public:
             category = other.category;
             year = other.year;
             copiesAvailable = other.copiesAvailable;
+            std::cout << "Оператор присваивания книги: " << title << std::endl;
         }
         return *this;
+    }
+
+    // Перегрузка оператора == для сравнения книг
+    bool operator==(const Book& other) const {
+        return title == other.title && author.getName() == other.author.getName();
+    }
+
+    // Статический метод для получения общего количества книг
+    static int getTotalBooks() {
+        return totalBooks;
     }
 
     // Метод для ввода данных о книге
@@ -115,7 +140,19 @@ public:
         category.input();
 
         std::cout << "Введите год издания: ";
-        std::cin >> year;
+        while (true) {
+            try {
+                std::cin >> year;
+                if (year < 1000 || year > 9999)
+                    throw std::out_of_range("Неверный год! Введите год в формате YYYY.");
+                break;
+            }
+            catch (const std::out_of_range& e) {
+                std::cout << e.what() << std::endl;
+                std::cout << "Введите год издания: ";
+            }
+        }
+
         std::cout << "Введите количество доступных копий: ";
         std::cin >> copiesAvailable;
         std::cin.ignore();  // Очищаем буфер после ввода чисел
@@ -140,13 +177,16 @@ public:
         ++copiesAvailable;
     }
 
-    // Перегрузка оператора вывода
+    // Метод для вывода информации о книге
     void print() const {
         std::cout << "Книга: " << title << ", Год: " << year << ", Доступных копий: " << copiesAvailable << std::endl;
         author.print();
         category.print();
     }
 };
+
+// Инициализация статического поля
+int Book::totalBooks = 0;
 
 class Reader {
 private:
@@ -203,15 +243,26 @@ public:
 int main() {
     setlocale(LC_ALL, "Rus");
 
-    // Тест: Создаем книгу с данными
+    // Пример работы с конструктором копирования
+    Author author1;
+    author1.input();
+    Author author2 = author1;  // Копирование через конструктор копирования
+    author2.print();
+
+    // Пример работы с оператором присваивания
+    Author author3;
+    author3 = author1;  // Присваивание через перегруженный оператор
+    author3.print();
+
+    // Динамическое выделение памяти для книги
     Book* dynamicBook = new Book();
     dynamicBook->input();  // Вводим данные о книге
 
-    // Тест: Создаем читателя с данными
+    // Динамическое выделение памяти для читателя
     Reader* dynamicReader = new Reader();
     dynamicReader->input();  // Вводим данные о читателе
 
-    // Тест: Ввод данных о выдаче книги
+    // Ввод данных о выдаче книги
     std::string issueDate, dueDate;
     std::cout << "Введите дату выдачи (DD.MM.YYYY): ";
     std::getline(std::cin, issueDate);
@@ -222,22 +273,12 @@ int main() {
     BookIssue* issue = new BookIssue(dynamicBook, dynamicReader, issueDate, dueDate);
     issue->print();  // Выводим информацию о выдаче
 
-    // Тест: Конструктор копии и оператор присваивания
-    Book* copiedBook = new Book(*dynamicBook);  // Используем конструктор копии
-    copiedBook->print();
-
-    Book anotherBook;
-    anotherBook = *dynamicBook;  // Используем оператор присваивания
-    anotherBook.print();
-
-    // Дружественная функция для авторов
-    printAuthorInfo(dynamicBook->getAuthor());
-
     // Освобождение памяти
     delete dynamicReader;
     delete dynamicBook;
     delete issue;
-    delete copiedBook;
+
+    std::cout << "Общее количество книг: " << Book::getTotalBooks() << std::endl;
 
     return 0;
 }
