@@ -102,8 +102,9 @@ class Order {
 public:
     vector<MenuItem*> items;  // Список заказанных позиций
     static int totalOrders;    // Статическое поле для подсчета общего количества заказов
+    int orderNumber;           // Номер заказа
 
-    Order() {
+    Order(int number) : orderNumber(number) {
         totalOrders++;  // Увеличиваем счетчик заказов при создании нового заказа
     }
 
@@ -115,7 +116,7 @@ public:
     // Вывести заказ
     void displayOrder() const {
         double total = 0;
-        cout << "\nВаш заказ:\n";
+        cout << "\nЗаказ №" << orderNumber << ":\n";
         for (const auto& item : items) {
             item->display();
             total += item->price;
@@ -129,8 +130,12 @@ public:
     }
 
     // Конструктор копирования
-    Order(const Order& other) {
+    Order(const Order& other) : orderNumber(other.orderNumber) {
         totalOrders = other.totalOrders;  // Мы не копируем items, чтобы избежать дублирования
+        for (const auto& item : other.items) {
+            // Создаем новый объект для каждого элемента, чтобы избежать проблем с указателями
+            items.push_back(item->clone());
+        }
     }
 
     // Перегрузка оператора присваивания
@@ -139,6 +144,12 @@ public:
             return *this;
         }
         totalOrders = other.totalOrders;
+        orderNumber = other.orderNumber;
+        items.clear();  // Очищаем текущий заказ
+        for (const auto& item : other.items) {
+            // Создаем новый объект для каждого элемента, чтобы избежать проблем с указателями
+            items.push_back(item->clone());
+        }
         return *this;
     }
 
@@ -161,6 +172,9 @@ void displayMenu() {
     cout << "3. Напитки\n";
     cout << "4. Десерты\n";
     cout << "5. Завершить заказ\n";
+    cout << "6. Копировать предыдущий заказ\n";
+    cout << "7. Копировать заказ по номеру\n";
+    cout << "8. Завершить работу\n";
     cout << "Введите номер категории: ";
 }
 
@@ -228,8 +242,11 @@ int main() {
         new Dessert("Пирог с яблоками", 90)
     };
 
+    // История заказов
+    vector<Order> orderHistory;
+
     // Создание объекта заказа
-    Order order;
+    Order currentOrder(1);  // Первый заказ
 
     try {
         bool ordering = true;
@@ -246,7 +263,7 @@ int main() {
                 cout << "Выберите главное блюдо (1-4): ";
                 cin >> choice;
                 if (choice >= 1 && choice <= 4) {
-                    order.addItem(mainDishes[choice - 1]);
+                    currentOrder.addItem(mainDishes[choice - 1]);
                 }
                 else {
                     throw invalid_argument("Некорректный выбор!");
@@ -259,7 +276,7 @@ int main() {
                 cout << "Выберите закуску (1-4): ";
                 cin >> choice;
                 if (choice >= 1 && choice <= 4) {
-                    order.addItem(appetizers[choice - 1]);
+                    currentOrder.addItem(appetizers[choice - 1]);
                 }
                 else {
                     throw invalid_argument("Некорректный выбор!");
@@ -272,7 +289,7 @@ int main() {
                 cout << "Выберите напиток (1-4): ";
                 cin >> choice;
                 if (choice >= 1 && choice <= 4) {
-                    order.addItem(drinks[choice - 1]);
+                    currentOrder.addItem(drinks[choice - 1]);
                 }
                 else {
                     throw invalid_argument("Некорректный выбор!");
@@ -285,7 +302,7 @@ int main() {
                 cout << "Выберите десерт (1-4): ";
                 cin >> choice;
                 if (choice >= 1 && choice <= 4) {
-                    order.addItem(desserts[choice - 1]);
+                    currentOrder.addItem(desserts[choice - 1]);
                 }
                 else {
                     throw invalid_argument("Некорректный выбор!");
@@ -293,6 +310,34 @@ int main() {
                 break;
             }
             case 5:
+                currentOrder.displayOrder();
+                orderHistory.push_back(currentOrder);  // Добавляем заказ в историю
+                currentOrder = Order(currentOrder.orderNumber + 1); // Новый заказ
+                break;
+            case 6:
+                if (!orderHistory.empty()) {
+                    currentOrder = Order(orderHistory.back()); // Копируем предыдущий заказ
+                    cout << "Копирован предыдущий заказ.\n";
+                }
+                else {
+                    cout << "Нет предыдущих заказов для копирования.\n";
+                }
+                break;
+            case 7:
+                int orderId;
+                cout << "Введите номер заказа для копирования: ";
+                cin >> orderId;
+                if (orderId > 0 && orderId <= orderHistory.size()) {
+                    currentOrder = Order(orderHistory[orderId - 1]); // Копируем заказ по номеру
+                    cout << "Копирован заказ номер " << orderId << ".\n";
+                }
+                else {
+                    cout << "Неверный номер заказа.\n";
+                }
+                break;
+            case 8:
+                cout << "Завершение работы.\n";
+                cout << "Общее количество сделанных заказов: " << Order::getTotalOrders() << endl;
                 ordering = false;
                 break;
             default:
@@ -301,14 +346,10 @@ int main() {
             }
         }
 
-        order.displayOrder();
-
     }
     catch (const invalid_argument& e) {
         cout << "Ошибка: " << e.what() << endl;
     }
-
-    cout << "Общее количество заказов: " << Order::getTotalOrders() << endl;
 
     return 0;
 }
